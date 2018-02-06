@@ -87,8 +87,9 @@ module TTFunk
 
         tables.delete_if { |tag, table| table.nil? }
 
-        search_range = (Math.log(tables.length) / Math.log(2)).to_i * 16
-        entry_selector = (Math.log(search_range) / Math.log(2)).to_i
+        max_pow2 = (Math.log(tables.length) / Math.log(2)).to_i
+        search_range = 2**max_pow2 * 16
+        entry_selector = max_pow2
         range_shift = tables.length * 16 - search_range
 
         newfont = [original.directory.scaler_type, tables.length, search_range, entry_selector, range_shift].pack("Nn*")
