@@ -22,6 +22,7 @@ module TTFunk
         end
       end
 
+      attr_reader :entries
       attr_reader :strings
 
       attr_reader :copyright
@@ -58,11 +59,21 @@ module TTFunk
         table = [0, str_count, 6 + 12 * str_count].pack("n*")
         strtable = ""
 
+        items = []
         strings.each do |id, list|
           list.each do |string|
-            table << [string.platform_id, string.encoding_id, string.language_id, id, string.length, strtable.length].pack("n*")
-            strtable << string
+            items << [id, string]
           end
+        end
+        items = items.sort_by do |id, string|
+          [string.platform_id, string.encoding_id, string.language_id, id]
+        end
+        items.each do |id, string|
+          table << [
+            string.platform_id, string.encoding_id, string.language_id, id,
+            string.length, strtable.length
+          ].pack('n*')
+          strtable << string
         end
 
         table << strtable
