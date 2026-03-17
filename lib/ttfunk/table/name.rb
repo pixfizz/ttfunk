@@ -189,7 +189,7 @@ module TTFunk
         # Convert hex digest to uppercase letters: 0-9 -> A-J, a-f -> K-P
         # This maintains 1-to-1 mapping while satisfying the "6 uppercase letters" requirement
         digest = Digest::SHA1.hexdigest(key)[0, 6]
-        
+
         tag = digest.chars.map do |c|
           case c
           when '0'..'9'
@@ -199,10 +199,24 @@ module TTFunk
           end
         end.join
 
-        postscript_name = NameString.new("#{tag}+#{names.postscript_name}", 1, 0, 0)
+        new_ps_name = "#{tag}+#{names.postscript_name}"
+
+        # platform_id=1, encoding_id=0, language_id=0 (Mac Roman)
+        # Required by Acrobat and the PDF spec for PostScript name
+        postscript_name_mac = NameString.new(new_ps_name, 1, 0, 0)
+
+        # platform_id=3, encoding_id=1, language_id=0x0409 (Windows Unicode UTF-16BE, English US)
+        # Required by Illustrator and other Windows-platform consumers.
+        # Without this record, apps that only look at platform 3 see no PostScript
+        # name and fall back to raw glyph indices, producing gobbledygook text.
+        postscript_name_win = NameString.new(
+          new_ps_name.encode('UTF-16BE').b,
+          3, 1, 0x0409
+        )
 
         strings = names.strings.dup
-        strings[6] = [postscript_name]
+        strings[6] = [postscript_name_mac, postscript_name_win]
+
         str_count = strings.reduce(0) { |sum, (_, list)| sum + list.length }
 
         table = [0, str_count, 6 + (12 * str_count)].pack('n*')
