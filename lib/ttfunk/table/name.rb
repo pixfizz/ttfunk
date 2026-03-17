@@ -201,21 +201,32 @@ module TTFunk
 
         new_ps_name = "#{tag}+#{names.postscript_name}"
 
-        # platform_id=1, encoding_id=0, language_id=0 (Mac Roman)
-        # Required by Acrobat and the PDF spec for PostScript name
-        postscript_name_mac = NameString.new(new_ps_name, 1, 0, 0)
+        # Detect which platforms the original font uses for PostScript name (id=6).
+        # Mirror that structure exactly: don't add or remove platforms.
+        # Illustrator requires platform 3 (Windows UTF-16BE); Acrobat accepts platform 1 (Mac Roman).
+        # Some fonts ship only with platform 3; adding a platform-1 record they never had
+        # causes Illustrator to misread the subset and render corrupted text.
+        original_ps_records = names.strings[6]
+        has_mac = original_ps_records.any? { |s| s.platform_id == 1 }
+        has_win = original_ps_records.any? { |s| s.platform_id == 3 }
 
-        # platform_id=3, encoding_id=1, language_id=0x0409 (Windows Unicode UTF-16BE, English US)
-        # Required by Illustrator and other Windows-platform consumers.
-        # Without this record, apps that only look at platform 3 see no PostScript
-        # name and fall back to raw glyph indices, producing gobbledygook text.
-        postscript_name_win = NameString.new(
-          new_ps_name.encode('UTF-16BE').b,
-          3, 1, 0x0409
-        )
+        new_ps_records = []
+
+        if has_mac || !has_win
+          # Mac Roman (platform 1) — plain ASCII bytes
+          new_ps_records << NameString.new(new_ps_name, 1, 0, 0)
+        end
+
+        if has_win || !has_mac
+          # Windows Unicode UTF-16BE (platform 3, encoding 1, language 0x0409 = English US)
+          new_ps_records << NameString.new(
+            new_ps_name.encode('UTF-16BE').b,
+            3, 1, 0x0409
+          )
+        end
 
         strings = names.strings.dup
-        strings[6] = [postscript_name_mac, postscript_name_win]
+        strings[6] = new_ps_records
 
         str_count = strings.reduce(0) { |sum, (_, list)| sum + list.length }
 
