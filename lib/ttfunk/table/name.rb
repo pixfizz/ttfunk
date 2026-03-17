@@ -185,7 +185,19 @@ module TTFunk
       # @param key [String]
       # @return [String]
       def self.encode(names, key = '')
-        tag = Digest::SHA1.hexdigest(key)[0, 6]
+        # Generate a 6-character uppercase tag according to PDF spec section 5.5.3
+        # Convert hex digest to uppercase letters: 0-9 -> A-J, a-f -> K-P
+        # This maintains 1-to-1 mapping while satisfying the "6 uppercase letters" requirement
+        digest = Digest::SHA1.hexdigest(key)[0, 6]
+        
+        tag = digest.chars.map do |c|
+          case c
+          when '0'..'9'
+            ('A'.ord + (c.ord - '0'.ord)).chr  # 0->A, 1->B, ..., 9->J
+          when 'a'..'f'
+            ('K'.ord + (c.ord - 'a'.ord)).chr  # a->K, b->L, ..., f->P
+          end
+        end.join
 
         postscript_name = NameString.new("#{tag}+#{names.postscript_name}", 1, 0, 0)
 
