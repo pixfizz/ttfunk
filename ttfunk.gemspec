@@ -1,6 +1,7 @@
 Gem::Specification.new do |spec|
   spec.name = 'ttfunk'
-  spec.version = '1.0.2'
+  #spec.version = '1.0.2'
+  spec.version = '1.8.0'
   spec.platform = Gem::Platform::RUBY
   spec.summary = "TrueType Font Metrics Parser"
   spec.description = "Get Ya TrueType Funk On! (Font Metrics Parser for Prawn)"
