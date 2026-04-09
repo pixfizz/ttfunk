@@ -2,7 +2,9 @@
 
 Gem::Specification.new do |spec|
   spec.name = 'ttfunk'
-  spec.version = '1.6.2.1'
+  # spec.version = '1.6.2.1'
+  # Pretending it's 1.8.0 to satisfy prawn's requirement.
+  spec.version = '1.8.0'
   spec.platform = Gem::Platform::RUBY
   spec.summary = 'TrueType Font Metrics Parser'
   spec.description = 'Font Metrics Parser for the Prawn PDF generator'
