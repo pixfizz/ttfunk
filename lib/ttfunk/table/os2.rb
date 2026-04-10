@@ -451,12 +451,12 @@ module TTFunk
             os2.selection, first_char_index, last_char_index,
           ].pack('n*')
 
-          if os2.version.positive?
-            result << [
-              os2.ascent, os2.descent, os2.line_gap,
-              os2.win_ascent, os2.win_descent,
-            ].pack('n*')
+          result << [
+            os2.ascent, os2.descent, os2.line_gap,
+            os2.win_ascent, os2.win_descent,
+          ].pack('n*')
 
+          if os2.version.positive?
             result << BinUtils
               .slice_int(
                 code_pages_for(subset).value,
@@ -614,9 +614,10 @@ module TTFunk
         @vendor_id = io.read(4)
         @selection, @first_char_index, @last_char_index = read(6, 'n*')
 
+        @ascent, @descent, @line_gap = read_signed(3)
+        @win_ascent, @win_descent = read(4, 'nn')
+
         if @version.positive?
-          @ascent, @descent, @line_gap = read_signed(3)
-          @win_ascent, @win_descent = read(4, 'nn')
           @code_page_range = BitField.new(BinUtils.stitch_int(read(8, 'N*'), bit_width: 32))
 
           if @version > 1
