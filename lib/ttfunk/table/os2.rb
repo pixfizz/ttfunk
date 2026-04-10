@@ -452,8 +452,11 @@ module TTFunk
           ].pack('n*')
 
           result << [
-            os2.ascent, os2.descent, os2.line_gap,
-            os2.win_ascent, os2.win_descent,
+            os2.ascent || 0,
+            os2.descent || 0,
+            os2.line_gap || 0,
+            os2.win_ascent || 0,
+            os2.win_descent || 0,
           ].pack('n*')
 
           if os2.version.positive?
