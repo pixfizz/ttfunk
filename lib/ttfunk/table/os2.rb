@@ -614,10 +614,15 @@ module TTFunk
         @vendor_id = io.read(4)
         @selection, @first_char_index, @last_char_index = read(6, 'n*')
 
-        @ascent, @descent, @line_gap = read_signed(3)
-        @win_ascent, @win_descent = read(4, 'nn')
-
         if @version.positive?
+          # PIXFIZZ NOTE: These fields exist in version 0 as well, with a caveat.
+          #               See docs at: https://learn.microsoft.com/en-us/typography/opentype/spec/os2
+          #               The correct thing to do would be to parse them for version 0 as well when they exist,
+          #               but at Pixfizz we have to keep these to remain backwards compatible with older ttfunk versions,
+          #               otherwise it messes up our vertical text positioning.
+          @ascent, @descent, @line_gap = read_signed(3)
+          @win_ascent, @win_descent = read(4, 'nn')
+
           @code_page_range = BitField.new(BinUtils.stitch_int(read(8, 'N*'), bit_width: 32))
 
           if @version > 1
